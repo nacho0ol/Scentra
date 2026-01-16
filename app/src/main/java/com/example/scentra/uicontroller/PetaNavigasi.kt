@@ -7,7 +7,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.scentra.ui.view.product.HalamanDetailProduct
 import com.example.scentra.ui.view.product.HalamanHistory
 import com.example.scentra.uicontroller.route.DestinasiDashboard
 import com.example.scentra.uicontroller.route.DestinasiDetail
@@ -20,6 +19,7 @@ import com.example.scentra.uicontroller.route.DestinasiProfile
 import com.example.scentra.uicontroller.route.DestinasiRegister
 import com.example.scentra.uicontroller.route.DestinasiUpdate
 import com.example.scentra.uicontroller.view.HalamanDashboard
+import com.example.scentra.uicontroller.view.HalamanDetailProduct
 import com.example.scentra.uicontroller.view.HalamanDetailUser
 import com.example.scentra.uicontroller.view.HalamanEditProduct
 import com.example.scentra.uicontroller.view.HalamanEntryProduct

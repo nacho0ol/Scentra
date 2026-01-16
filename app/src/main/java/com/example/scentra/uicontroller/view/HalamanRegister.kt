@@ -9,10 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.scentra.uicontroller.view.widget.ScentraTopAppBar
 import com.example.scentra.uicontroller.viewmodel.RegisterUiState
 import com.example.scentra.uicontroller.viewmodel.RegisterViewModel
 import com.example.scentra.uicontroller.viewmodel.provider.PenyediaViewModel
@@ -36,7 +38,11 @@ fun HalamanRegister(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("Daftar Akun Baru") })
+            ScentraTopAppBar(
+                title = "Daftar Akun Baru",
+                canNavigateBack = true,
+                navigateUp = onNavigateBack
+            )
         }
     ) { innerPadding ->
         Column(
@@ -44,47 +50,86 @@ fun HalamanRegister(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp)
-                .verticalScroll(scrollState), // Aktifkan scroll
+                .verticalScroll(scrollState), // Scrollable
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            if (uiState is RegisterUiState.Error) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Text(
+                        text = uiState.message,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
+
             OutlinedTextField(
                 value = viewModel.firstname,
-                onValueChange = { viewModel.firstname = it },
-                label = { Text("Nama Depan") },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { viewModel.onFirstnameChange(it) },
+                label = { Text("Nama Depan *") },
+                isError = viewModel.isFirstnameError,
+                supportingText = {
+                    if(viewModel.isFirstnameError) Text("Wajib diisi (Min 3 Huruf)", color = MaterialTheme.colorScheme.error)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = viewModel.lastname,
-                onValueChange = { viewModel.lastname = it },
-                label = { Text("Nama Belakang") },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { viewModel.onLastnameChange(it) },
+                label = { Text("Nama Belakang *") },
+                isError = viewModel.isLastnameError,
+                supportingText = {
+                    if(viewModel.isLastnameError) Text("Wajib diisi (Min 3 Huruf)", color = MaterialTheme.colorScheme.error)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = viewModel.username,
-                onValueChange = { viewModel.username = it },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { viewModel.onUsernameChange(it) },
+                label = { Text("Username *") },
+                isError = viewModel.isUsernameError,
+                supportingText = {
+                    if(viewModel.isUsernameError) Text("Min 6 karakter, depannya huruf", color = MaterialTheme.colorScheme.error)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = viewModel.password,
-                onValueChange = { viewModel.password = it },
-                label = { Text("Password") },
+                onValueChange = { viewModel.onPasswordChange(it) },
+                label = { Text("Password *") },
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                isError = viewModel.isPasswordError,
+                supportingText = {
+                    if(viewModel.isPasswordError) Text("Wajib diisi", color = MaterialTheme.colorScheme.error)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- PILIHAN ROLE (Radio Button) ---
-            Text("Pilih Role:", style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // --- PILIHAN ROLE ---
+            Text(
+                text = "Pilih Role:",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.Start)) {
                 RadioButton(
                     selected = viewModel.role == "Staff",
                     onClick = { viewModel.role = "Staff" }
@@ -100,6 +145,7 @@ fun HalamanRegister(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- TOMBOL DAFTAR ---
             Button(
                 onClick = { viewModel.onRegisterClick() },
                 modifier = Modifier.fillMaxWidth(),
@@ -119,13 +165,6 @@ fun HalamanRegister(
                 Text("Batal / Sudah punya akun")
             }
 
-            if (uiState is RegisterUiState.Error) {
-                Text(
-                    text = uiState.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
-            }
         }
     }
 }

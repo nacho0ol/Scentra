@@ -43,7 +43,6 @@ fun HalamanEditProduct(
     val uiState = viewModel.uiState
     val context = LocalContext.current
 
-    // Launcher Galeri
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -71,6 +70,21 @@ fun HalamanEditProduct(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            // 1. ERROR GLOBAL (Server Error)
+            if (uiState.error != null) {
+                item {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+            }
+
+            // 2. FOTO PRODUK
             item {
                 Box(
                     modifier = Modifier
@@ -112,11 +126,14 @@ fun HalamanEditProduct(
                 }
             }
 
+
             item {
                 OutlinedTextField(
                     value = uiState.nama,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(nama = it)) },
+                    onValueChange = { viewModel.updateUiState(uiState.copy(nama = it, isNamaError = false)) },
                     label = { Text("Nama Produk") },
+                    isError = uiState.isNamaError,
+                    supportingText = { if (uiState.isNamaError) Text("Wajib diisi (Min 5 Char)", color = MaterialTheme.colorScheme.error) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -124,9 +141,11 @@ fun HalamanEditProduct(
             item {
                 OutlinedTextField(
                     value = uiState.variant,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(variant = it)) },
+                    onValueChange = { viewModel.updateUiState(uiState.copy(variant = it, isVariantError = false)) },
                     label = { Text("Varian (ml)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = uiState.isVariantError,
+                    supportingText = { if (uiState.isVariantError) Text("Wajib angka valid", color = MaterialTheme.colorScheme.error) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -134,54 +153,89 @@ fun HalamanEditProduct(
             item {
                 OutlinedTextField(
                     value = uiState.price,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(price = it)) },
+                    onValueChange = { viewModel.updateUiState(uiState.copy(price = it, isPriceError = false)) },
                     label = { Text("Harga (Rp)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = uiState.isPriceError,
+                    supportingText = { if (uiState.isPriceError) Text("Wajib angka (> 30.000)", color = MaterialTheme.colorScheme.error) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // --- 5. STOK ---
             item {
                 OutlinedTextField(
                     value = uiState.currentStock,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(currentStock = it)) },
+                    onValueChange = { viewModel.updateUiState(uiState.copy(currentStock = it, isStockError = false)) },
                     label = { Text("Stok") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = uiState.isStockError,
+                    supportingText = { if (uiState.isStockError) Text("Wajib angka (0-99)", color = MaterialTheme.colorScheme.error) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // --- 6. NOTES PARFUM ---
+
             item {
-                DynamicNotesInput(
-                    label = "Top Notes",
-                    currentValue = uiState.topNotes,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(topNotes = it)) }
-                )
+                Column {
+                    DynamicNotesInput(
+                        label = "Top Notes",
+                        currentValue = uiState.topNotes,
+                        onValueChange = { viewModel.updateUiState(uiState.copy(topNotes = it, isTopNotesError = false)) }
+                    )
+                    if (uiState.isTopNotesError) {
+                        Text(
+                            text = "Notes tidak valid",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+                }
             }
 
             item {
-                DynamicNotesInput(
-                    label = "Middle Notes",
-                    currentValue = uiState.middleNotes,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(middleNotes = it)) }
-                )
+                Column {
+                    DynamicNotesInput(
+                        label = "Middle Notes",
+                        currentValue = uiState.middleNotes,
+                        onValueChange = { viewModel.updateUiState(uiState.copy(middleNotes = it, isMidNotesError = false)) }
+                    )
+                    if (uiState.isMidNotesError) {
+                        Text(
+                            text = "Notes tidak valid",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+                }
             }
 
             item {
-                DynamicNotesInput(
-                    label = "Base Notes",
-                    currentValue = uiState.baseNotes,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(baseNotes = it)) }
-                )
+                Column {
+                    DynamicNotesInput(
+                        label = "Base Notes",
+                        currentValue = uiState.baseNotes,
+                        onValueChange = { viewModel.updateUiState(uiState.copy(baseNotes = it, isBaseNotesError = false)) }
+                    )
+                    if (uiState.isBaseNotesError) {
+                        Text(
+                            text = "Notes tidak valid",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+                }
             }
 
             item {
                 OutlinedTextField(
                     value = uiState.description,
-                    onValueChange = { viewModel.updateUiState(uiState.copy(description = it)) },
+                    onValueChange = { viewModel.updateUiState(uiState.copy(description = it, isDescError = false)) },
                     label = { Text("Deskripsi") },
+                    isError = uiState.isDescError,
+                    supportingText = { if (uiState.isDescError) Text("Wajib diisi (Min 10 Char)", color = MaterialTheme.colorScheme.error) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -192,9 +246,14 @@ fun HalamanEditProduct(
                     onClick = {
                         viewModel.updateProduk(idProduk, context) { onNavigateBack() }
                     },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    enabled = !uiState.isLoading
                 ) {
-                    Text("Update Produk")
+                    if(uiState.isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Update Produk")
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-package com.example.scentra.ui.view.product
+package com.example.scentra.uicontroller.view
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,7 +38,6 @@ fun HalamanDetailProduct(
         viewModel.getProdukById(idProduk)
     }
 
-    // State untuk Dialog
     var showRestockDialog by remember { mutableStateOf(false) }
     var showStockOutDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -53,13 +52,10 @@ fun HalamanDetailProduct(
                     }
                 },
                 actions = {
-
                     if (CurrentUser.role == "Admin") {
-
                         IconButton(onClick = { onEditClick(idProduk) }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
                         }
-
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
@@ -72,8 +68,6 @@ fun HalamanDetailProduct(
             )
         }
     ) { innerPadding ->
-
-
         when (val state = viewModel.detailUiState) {
             is DetailUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -86,10 +80,23 @@ fun HalamanDetailProduct(
                 }
             }
             is DetailUiState.Success -> {
+                LaunchedEffect(viewModel.isStockLoading) {
+                    if (!viewModel.isStockLoading && viewModel.stockErrorMessage == null) {
+                        showRestockDialog = false
+                        showStockOutDialog = false
+                    }
+                }
+
                 DetailContent(
                     produk = state.produk,
-                    onRestockClick = { showRestockDialog = true },
-                    onStockOutClick = { showStockOutDialog = true },
+                    onRestockClick = {
+                        viewModel.resetStockError()
+                        showRestockDialog = true
+                    },
+                    onStockOutClick = {
+                        viewModel.resetStockError()
+                        showStockOutDialog = true
+                    },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -99,26 +106,38 @@ fun HalamanDetailProduct(
             StockDialog(
                 title = "Restock Barang (+)",
                 label = "Jumlah Masuk",
-                onDismiss = { showRestockDialog = false },
+                errorMessage = viewModel.stockErrorMessage,
+                isLoading = viewModel.isStockLoading,
+                onDismiss = {
+                    showRestockDialog = false
+                    viewModel.resetStockError()
+                },
+                onValueChange = { viewModel.resetStockError() },
                 onConfirm = { jumlah ->
                     viewModel.updateStok(idProduk, jumlah, isRestock = true)
-                    showRestockDialog = false
                 }
             )
         }
 
+        // --- DIALOG STOCK OUT ---
         if (showStockOutDialog) {
             StockDialog(
                 title = "Barang Keluar (-)",
                 label = "Jumlah Keluar",
-                onDismiss = { showStockOutDialog = false },
+                errorMessage = viewModel.stockErrorMessage,
+                isLoading = viewModel.isStockLoading,
+                onDismiss = {
+                    showStockOutDialog = false
+                    viewModel.resetStockError()
+                },
+                onValueChange = { viewModel.resetStockError() },
                 onConfirm = { jumlah ->
                     viewModel.updateStok(idProduk, jumlah, isRestock = false)
-                    showStockOutDialog = false
                 }
             )
         }
 
+        // --- DIALOG DELETE ---
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
@@ -166,7 +185,8 @@ fun DetailContent(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             AsyncImage(
-                model = getFullImageUrl(produk.imgPath),
+                // 👇 Pake Nama Baru
+                model = getDetailImageUrl(produk.imgPath),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -174,20 +194,10 @@ fun DetailContent(
         }
 
         Column {
-            Text(
-                text = produk.nama,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Rp ${produk.price}",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Text(text = produk.nama, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(text = "Rp ${produk.price}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
         }
-
         Divider()
-
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier.fillMaxWidth()
@@ -199,43 +209,25 @@ fun DetailContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Stok Gudang", style = MaterialTheme.typography.titleMedium)
-
-                    Text(
-                        "${produk.stok}",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text("${produk.stok}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = onStockOutClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE57373)),
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Button(onClick = onStockOutClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE57373)), modifier = Modifier.weight(1f)) {
                         Text("Keluar (-)")
                     }
-
-                    Button(
-                        onClick = onRestockClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF81C784)),
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Button(onClick = onRestockClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF81C784)), modifier = Modifier.weight(1f)) {
                         Text("Masuk (+)")
                     }
                 }
             }
         }
-
         Divider()
-
-        InfoRow(label = "Variant", value = "${produk.variant} ml")
-        InfoRow(label = "Top Notes", value = produk.topNotes)
-        InfoRow(label = "Middle Notes", value = produk.middleNotes)
-        InfoRow(label = "Base Notes", value = produk.baseNotes)
+        // 👇 Pake Nama Baru
+        DetailInfoRow(label = "Variant", value = "${produk.variant} ml")
+        DetailInfoRow(label = "Top Notes", value = produk.topNotes)
+        DetailInfoRow(label = "Middle Notes", value = produk.middleNotes)
+        DetailInfoRow(label = "Base Notes", value = produk.baseNotes)
 
         Spacer(modifier = Modifier.height(8.dp))
         Text("Deskripsi:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -244,7 +236,7 @@ fun DetailContent(
 }
 
 @Composable
-fun InfoRow(label: String, value: String) {
+fun DetailInfoRow(label: String, value: String) {
     Row(modifier = Modifier.padding(vertical = 4.dp)) {
         Text(text = "$label: ", fontWeight = FontWeight.SemiBold, modifier = Modifier.width(100.dp))
         Text(text = value)
@@ -255,7 +247,10 @@ fun InfoRow(label: String, value: String) {
 fun StockDialog(
     title: String,
     label: String,
+    errorMessage: String? = null,
+    isLoading: Boolean = false,
     onDismiss: () -> Unit,
+    onValueChange: () -> Unit = {},
     onConfirm: (Int) -> Unit
 ) {
     var textInput by remember { mutableStateOf("") }
@@ -264,13 +259,29 @@ fun StockDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            OutlinedTextField(
-                value = textInput,
-                onValueChange = { if (it.all { char -> char.isDigit() }) textInput = it },
-                label = { Text(label) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
+            Column {
+                OutlinedTextField(
+                    value = textInput,
+                    onValueChange = {
+                        if (it.all { char -> char.isDigit() }) {
+                            textInput = it
+                            onValueChange()
+                        }
+                    },
+                    label = { Text(label) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    isError = errorMessage != null
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp, start = 8.dp)
+                    )
+                }
+            }
         },
         confirmButton = {
             Button(
@@ -279,9 +290,14 @@ fun StockDialog(
                     if (jumlah > 0) {
                         onConfirm(jumlah)
                     }
-                }
+                },
+                enabled = !isLoading
             ) {
-                Text("Simpan")
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text("Simpan")
+                }
             }
         },
         dismissButton = {
@@ -292,9 +308,7 @@ fun StockDialog(
     )
 }
 
-
-fun getFullImageUrl(path: String): String {
+fun getDetailImageUrl(path: String): String {
     val baseUrl = "http://10.0.2.2:3000/uploads/"
     return if (path.startsWith("http")) path else "$baseUrl$path"
 }
-

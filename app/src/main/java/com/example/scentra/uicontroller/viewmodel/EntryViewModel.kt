@@ -7,15 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scentra.modeldata.CreateProdukRequest
 import com.example.scentra.repositori.ScentraRepository
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject // WAJIB ADA
 import java.io.File
 import java.io.FileOutputStream
 
@@ -31,9 +29,7 @@ data class InsertUiState(
     val error: String? = null,
     val imageUri: Uri? = null,
     val imgPath: String = "default.jpg",
-
     val isLoading: Boolean = false,
-
     val isNamaError: Boolean = false,
     val isVariantError: Boolean = false,
     val isPriceError: Boolean = false,
@@ -48,14 +44,12 @@ class EntryViewModel(private val repository: ScentraRepository) : ViewModel() {
     var uiState by mutableStateOf(InsertUiState())
         private set
 
-    fun updateUiState(newState: InsertUiState) {
-        uiState = newState
-    }
+    fun updateUiState(newState: InsertUiState) { uiState = newState }
 
+    // Reset Error Functions
     fun onNamaChange(it: String) { uiState = uiState.copy(nama = it, isNamaError = false) }
     fun onVariantChange(it: String) { uiState = uiState.copy(variant = it, isVariantError = false) }
     fun onPriceChange(it: String) { uiState = uiState.copy(price = it, isPriceError = false) }
-
     fun onStockChange(it: String) { uiState = uiState.copy(currentStock = it, isStockError = false) }
     fun onTopNotesChange(it: String) { uiState = uiState.copy(topNotes = it, isTopNotesError = false) }
     fun onMidNotesChange(it: String) { uiState = uiState.copy(middleNotes = it, isMidNotesError = false) }
@@ -78,8 +72,8 @@ class EntryViewModel(private val repository: ScentraRepository) : ViewModel() {
         uiState = currentState
         if (hasError) return
 
-
         viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, error = null)
             try {
                 val namaRB = uiState.nama.toRequestBody("text/plain".toMediaTypeOrNull())
                 val variantRB = uiState.variant.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -91,31 +85,51 @@ class EntryViewModel(private val repository: ScentraRepository) : ViewModel() {
                 val descRB = uiState.description.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 var imagePart: MultipartBody.Part? = null
-
                 uiState.imageUri?.let { uri ->
                     val file = uriToFile(uri, context)
                     val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-
                     imagePart = MultipartBody.Part.createFormData("image", file.name, requestFile)
                 }
-                repository.insertProduk(namaRB, variantRB, priceRB, stokRB, topRB, midRB, baseRB, descRB, imagePart)
-                onSuccess()
+
+                val response = repository.insertProduk(namaRB, variantRB, priceRB, stokRB, topRB, midRB, baseRB, descRB, imagePart)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    uiState = uiState.copy(isLoading = false)
+                    onSuccess()
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    try {
+                        val jsonObject = JSONObject(errorBody)
+                        val msg = jsonObject.getString("message")
+                        val errorField = if (jsonObject.has("error_field")) jsonObject.getString("error_field") else ""
+
+                        var newState = uiState.copy(isLoading = false, error = msg)
+
+                        when(errorField) {
+                            "product_name" -> newState = newState.copy(isNamaError = true)
+                            "variant" -> newState = newState.copy(isVariantError = true)
+                            "price" -> newState = newState.copy(isPriceError = true)
+                            "current_stock" -> newState = newState.copy(isStockError = true)
+                            "top_notes" -> newState = newState.copy(isTopNotesError = true)
+                            "middle_notes" -> newState = newState.copy(isMidNotesError = true)
+                            "base_notes" -> newState = newState.copy(isBaseNotesError = true)
+                            "description" -> newState = newState.copy(isDescError = true)
+                        }
+                        uiState = newState
+                    } catch (e: Exception) {
+                        uiState = uiState.copy(isLoading = false, error = "Gagal: ${response.message()}")
+                    }
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
-                uiState = uiState.copy(error = "Gagal simpan: ${e.message}")
+                uiState = uiState.copy(isLoading = false, error = "Error: ${e.message}")
             }
         }
     }
-
     private fun uriToFile(uri: android.net.Uri, context: Context): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
         val outputStream = FileOutputStream(tempFile)
-        inputStream?.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
-            }
-        }
+        inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
         return tempFile
     }
 }

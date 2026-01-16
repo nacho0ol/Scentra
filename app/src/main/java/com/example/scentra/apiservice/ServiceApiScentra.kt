@@ -10,6 +10,7 @@ import com.example.scentra.modeldata.LoginResponse
 import com.example.scentra.modeldata.ProdukDetailResponse
 import com.example.scentra.modeldata.ProdukResponse
 import com.example.scentra.modeldata.RegisterRequest
+import com.example.scentra.modeldata.RegisterResponse
 import com.example.scentra.modeldata.StokRequest
 import com.example.scentra.modeldata.UserData
 import com.example.scentra.modeldata.UserResponse
@@ -30,7 +31,7 @@ interface ScentraApiService {
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
     @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): BaseResponse
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
     @GET("api/products")
     suspend fun getProducts(): ProdukResponse
@@ -92,7 +93,7 @@ interface ScentraApiService {
     suspend fun updateUser(
         @Path("id") id: Int,
         @Body user: UserData
-    ): BaseResponse
+    ): Response<BasicResponse>
 
     // Delete
     @DELETE("api/auth/users/{id}")
