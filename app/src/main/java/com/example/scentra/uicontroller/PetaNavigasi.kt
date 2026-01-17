@@ -115,7 +115,21 @@ fun ScentraNavHost(
 
         composable(DestinasiHistory.route) {
             HalamanHistory(
-                navigateBack = { navController.popBackStack() }
+                onNavigate = { routePilihan ->
+                    val role = com.example.scentra.modeldata.CurrentUser.role
+
+                    val routeFinal = when (routePilihan) {
+                        "dashboard" -> "${DestinasiDashboard.route}/$role"
+                        "profile" -> "${DestinasiProfile.route}/$role"
+                        else -> routePilihan
+                    }
+
+                    navController.navigate(routeFinal) {
+                        popUpTo(DestinasiDashboard.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
 

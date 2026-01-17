@@ -34,6 +34,8 @@ import com.example.scentra.uicontroller.viewmodel.ProfileUiState
 import com.example.scentra.uicontroller.viewmodel.ProfileViewModel
 import com.example.scentra.uicontroller.viewmodel.provider.PenyediaViewModel
 
+private val RedButton = Color(0xFF922B21)
+
 @Composable
 fun HalamanProfile(
     onLogoutClick: () -> Unit,
@@ -178,7 +180,7 @@ fun HalamanProfile(
                     viewModel.logout()
                     onLogoutClick()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                colors = ButtonDefaults.buttonColors(containerColor = RedButton),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
             ) {
                 Icon(Icons.Outlined.ExitToApp, contentDescription = null)

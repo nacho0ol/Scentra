@@ -3,7 +3,6 @@ package com.example.scentra.ui.view.product
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,11 +16,13 @@ import com.example.scentra.modeldata.HistoryLog
 import com.example.scentra.uicontroller.viewmodel.HistoryUiState
 import com.example.scentra.uicontroller.viewmodel.HistoryViewModel
 import com.example.scentra.uicontroller.viewmodel.provider.PenyediaViewModel
+import com.example.scentra.uicontroller.view.widget.ScentraBottomAppBar
+import com.example.scentra.uicontroller.route.DestinasiHistory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HalamanHistory(
-    navigateBack: () -> Unit,
+    onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
@@ -32,12 +33,22 @@ fun HalamanHistory(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Riwayat Stok") },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                title = {
+                    Text(
+                        text = DestinasiHistory.titleRes,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF1D1B20)
+                )
+            )
+        },
+        bottomBar = {
+            ScentraBottomAppBar(
+                currentRoute = DestinasiHistory.route,
+                onNavigate = onNavigate
             )
         }
     ) { innerPadding ->
@@ -66,8 +77,11 @@ fun HalamanHistory(
 @Composable
 fun HistoryList(logs: List<HistoryLog>, modifier: Modifier = Modifier) {
     LazyColumn(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(logs) { log ->
             HistoryCard(log)
@@ -78,12 +92,14 @@ fun HistoryList(logs: List<HistoryLog>, modifier: Modifier = Modifier) {
 @Composable
 fun HistoryCard(log: HistoryLog) {
     val isMasuk = log.type == "Masuk"
-    val warnaStatus = if (isMasuk) Color(0xFF4CAF50) else Color(0xFFE57373) // Green vs Red
+
+    val warnaStatus = if (isMasuk) Color(0xFF398256) else Color(0xFF922B21)
     val iconTeks = if (isMasuk) "(+)" else "(-)"
 
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -95,26 +111,29 @@ fun HistoryCard(log: HistoryLog) {
                 Text(
                     text = log.product_name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Oleh: ${log.username ?: "Unknown"}",
+                    text = "Oleh: ${log.username ?: "System"}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.Gray
                 )
                 Text(
                     text = log.date.take(10),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
+                    color = Color.LightGray
                 )
             }
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = warnaStatus)
+                colors = CardDefaults.cardColors(containerColor = warnaStatus),
+                shape = MaterialTheme.shapes.small
             ) {
                 Text(
                     text = "$iconTeks ${log.qty}",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
