@@ -53,7 +53,7 @@ class DetailViewModel(private val repository: ScentraRepository) : ViewModel() {
         }
     }
 
-    fun updateStok(idProduk: Int, qty: Int, isRestock: Boolean) {
+    fun updateStok(idProduk: Int, qty: Int, isRestock: Boolean, reason: String = "") {
         viewModelScope.launch {
             isStockLoading = true
             stockErrorMessage = null
@@ -62,7 +62,8 @@ class DetailViewModel(private val repository: ScentraRepository) : ViewModel() {
                 val response = if (isRestock) {
                     repository.restockProduct(idProduk, qty)
                 } else {
-                    repository.stockOutProduct(idProduk, qty, reason = "Sales")
+                    val finalReason = if (reason.isNotBlank()) reason else "Sales"
+                    repository.stockOutProduct(idProduk, qty, reason = finalReason)
                 }
 
                 if (response.isSuccessful) {
