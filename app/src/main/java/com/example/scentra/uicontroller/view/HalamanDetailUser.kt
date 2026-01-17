@@ -60,8 +60,11 @@ fun HalamanDetailUser(
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Black)
                     }
 
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = RedButton)
+
+                    if (idUser != com.example.scentra.modeldata.CurrentUser.id) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = RedButton)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
