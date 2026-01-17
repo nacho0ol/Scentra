@@ -242,17 +242,27 @@ fun HalamanEditProduct(
             }
 
             item {
-                Button(
-                    onClick = {
-                        viewModel.updateProduk(idProduk, context) { onNavigateBack() }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                    enabled = !uiState.isLoading
-                ) {
-                    if(uiState.isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Update Produk")
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            viewModel.updateProduk(idProduk, context) { onNavigateBack() }
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                        enabled = !uiState.isLoading
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Update Produk")
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !uiState.isLoading
+                    ) {
+                        Text("Batal")
                     }
                 }
             }

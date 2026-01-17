@@ -14,8 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.scentra.R
 import com.example.scentra.modeldata.UserData
-import com.example.scentra.uicontroller.route.DestinasiDetailUser
 import com.example.scentra.uicontroller.view.widget.ScentraBottomAppBar
 import com.example.scentra.uicontroller.viewmodel.ProfileUiState
 import com.example.scentra.uicontroller.viewmodel.ProfileViewModel
@@ -49,6 +47,8 @@ fun HalamanProfile(
             viewModel.loadUsers()
         }
     }
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val BackgroundColor = Color(0xFFFFFBF2)
 
@@ -100,7 +100,6 @@ fun HalamanProfile(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Text: Hello Admin!
             Text(
                 text = "Hello ${viewModel.currentUser.role}!",
                 fontSize = 14.sp,
@@ -177,8 +176,7 @@ fun HalamanProfile(
 
             Button(
                 onClick = {
-                    viewModel.logout()
-                    onLogoutClick()
+                    showLogoutDialog = true
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = RedButton),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
@@ -187,6 +185,31 @@ fun HalamanProfile(
                 Spacer(Modifier.width(8.dp))
                 Text("Logout")
             }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Konfirmasi Logout") },
+                text = { Text("Apakah Anda yakin ingin keluar dari aplikasi?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.logout()
+                            onLogoutClick()
+                            showLogoutDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = RedButton)
+                    ) {
+                        Text("Ya, Keluar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Batal")
+                    }
+                }
+            )
         }
     }
 }
@@ -221,13 +244,13 @@ fun UserCard(user: UserData,
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = user.firstname, // Nama asli
+                    text = user.firstname,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = Color.Black
                 )
                 Text(
-                    text = "@${user.username}", // Username
+                    text = "@${user.username}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )

@@ -161,8 +161,13 @@ fun HalamanRegister(
                 }
             }
 
-            TextButton(onClick = onNavigateBack) {
-                Text("Batal / Sudah punya akun")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Batal")
             }
 
         }

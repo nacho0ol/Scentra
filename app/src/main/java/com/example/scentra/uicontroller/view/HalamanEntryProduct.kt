@@ -225,19 +225,29 @@ fun HalamanEntryProduct(
             }
 
             item {
-                Button(
-                    onClick = {
-                        viewModel.saveProduk(context) { onNavigateBack() }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    enabled = !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Simpan Produk")
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            viewModel.saveProduk(context) { onNavigateBack() }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        enabled = !uiState.isLoading
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Simpan Produk")
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !uiState.isLoading
+                    ) {
+                        Text("Batal")
                     }
                 }
             }
