@@ -21,11 +21,10 @@ fun ScentraBottomAppBar(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 👇 Tambahkan .height(68.dp) biar lebih tipis/wajar
     NavigationBar(
-        modifier = modifier.height(120.dp),
-        containerColor = Color(0xFFFFFCF5), // Background Cream
-        tonalElevation = 0.dp // Hilangkan bayangan abu-abu default Android
+        modifier = modifier,
+        containerColor = Color(0xFFFFFCF5),
+        tonalElevation = 0.dp
     ) {
         // --- ITEM 1: HOME ---
         NavigationBarItem(
@@ -33,7 +32,7 @@ fun ScentraBottomAppBar(
             label = { Text("Home") },
             selected = currentRoute?.contains("dashboard") == true,
             onClick = { onNavigate("dashboard") },
-            colors = customNavColors() // Panggil settingan warna di bawah
+            colors = customNavColors()
         )
 
         // --- ITEM 2: HISTORY ---
@@ -56,12 +55,11 @@ fun ScentraBottomAppBar(
     }
 }
 
-// 👇 FUNGSI TAMBAHAN BUAT NGATUR WARNA BIAR GAK UNGU
 @Composable
 fun customNavColors() = NavigationBarItemDefaults.colors(
-    indicatorColor = Color(0xFF1D1B20),    // Bulatan latar icon jadi HITAM (gantiin ungu)
-    selectedIconColor = Color.White,       // Icon pas dipilih jadi PUTIH
-    selectedTextColor = Color.Black,       // Teks pas dipilih jadi HITAM
-    unselectedIconColor = Color.Gray,      // Icon gak dipilih ABU
-    unselectedTextColor = Color.Gray       // Teks gak dipilih ABU
+    indicatorColor = Color(0xFF1D1B20),
+    selectedIconColor = Color.White,
+    selectedTextColor = Color.Black,
+    unselectedIconColor = Color.Gray,
+    unselectedTextColor = Color.Gray
 )
